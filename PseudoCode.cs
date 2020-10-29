@@ -21,37 +21,37 @@ using System.Threading;
 
 namespace Server
 {
-	class FOO
+	//Types of message:
+	// 1: Joined the server
+	// 0: Left the server <- default message if none is specified, user is kicked lol
+	// 2: Any message
+	struct Message
 	{
-		//Types of message:
-		// 1: Joined the server
-		// 0: Left the server <- default message if none is specified, user is kicked lol
-		// 2: Any message
-		struct Message
+		public string message;
+		private int type;
+		public Socket user;
+
+		public Message(string theMessage, int theType, Socket theUser)
 		{
-			public string message;
-			private int type;
-			public Socket user;
-
-			public Message(string theMessage, int theType, Socket theUser)
-			{
-				message = theMessage;
-				Type = theType;
-				user = theUser;
-			}
-
-			public int Type
-			{
-				get { return type; }
-				set{
-					if(value == 0 || value == 1 || value == 2)
-						type = value;
-					else
-						type = 0;
-				}
-			}
+			message = theMessage;
+			Type = theType;
+			user = theUser;
 		}
 
+		public int Type
+		{
+			get { return type; }
+			set{
+				if(value == 0 || value == 1 || value == 2)
+					type = value;
+				else
+					type = 0;
+			}
+		}
+	}
+	
+	class FOO
+	{
 		public static void ExecuteServer()
 		{
 			//Set everything up;
@@ -107,7 +107,7 @@ namespace Server
 			while(true) //Parsing the type
 			{
 				int numByte = client.Receive(bytes);
-                data += Encoding.ASCII.GetString(bytes, 0, numByte); FIX THIS LATER
+                data += Encoding.ASCII.GetString(bytes, 0, numByte); //FIX THIS LATER
 
                 if (data.IndexOf("\b") > -1) //<EOF>
                     break;
@@ -120,4 +120,4 @@ namespace Server
 			ExecuteServer();
 		}
 	}
-}		
+}
