@@ -21,6 +21,13 @@ using System.Threading;
 
 namespace Server
 {
+	enum MessageTypes
+	{
+		Disconnected = 0;
+		Joined = 1;
+		SentMessage = 2;
+	}
+
 	//Types of message:
 	// 1: Joined the server
 	// 0: Left the server <- default message if none is specified, user is kicked lol
@@ -28,24 +35,24 @@ namespace Server
 	class Message
 	{
 		public string text;
-		private int type;
+		private int _type;
 		public Socket user;
 
 		public Message(string theMessage, int theType, Socket theUser)
 		{
 			message = theMessage;
-			Msgtype = theType;
+			MsgType = theType;
 			user = theUser;
 		}
 
-		public int Msgtype
+		public int MsgType
 		{
-			get { return type; }
+			get { return _type; }
 			set{
 				if(value == 0 || value == 1 || value == 2)
-					type = value;
+					_type = value;
 				else
-					type = 0;
+					_type = 0;
 			}
 		}
 	}
@@ -71,9 +78,7 @@ namespace Server
 				while(true)
 				{
 					Socket clientSocket = listener.Accept();
-					//Everyhting that went here I am going to put inside the Connection() method
-					//and then create a new thread with that method for each client
-					//Is that what you meant?
+
 					Thread ConnectionThread = new Thread(() => Connection(clientSocket));
 					ConnectionThread.Start();
 				}
@@ -89,12 +94,13 @@ namespace Server
 			while(true)
 			{
 				Message current = Listen(client);
-				if(message.Msgtype == 0)
+				if(message.Msgtype == Disconnected)
 					Disconnect(client);
-				else if(message.Msgtype == 1)
-					Send(message.user" has just joined!", Server); //NEED TO MAKE THE SERVER A USER
-				else if(message.Msgtype == 2)
+				else if(message.MsgType == Joined)
+					Send(message.user" has just joined!", "Server");
+				else if(message.Msgtype == SentMessage)
 					Send(message.text, message.user);
+				delete current;
 			}
 		}
 
@@ -104,13 +110,22 @@ namespace Server
 			client.Close();
 		}
 
+		public static void Send(string msg, string user)
+		{
+			foreach(Socket client in ExecuteServer.clients)
+			{
+				byte[] messageSent = Encoding.ASCII.GetBytes(user + ": " + msg);
+				client.Send(messageSent);
+			}
+		}
+
 		public static Message Listen(Socket client)
 		{
 			byte[] bytes = new byte[2048];
 			string text = null;
 			string user = null;
 			string temp = null;
-			int type = null;
+			int _type = null;
 
 			while(true) //Parsing the message
 			{
@@ -137,9 +152,10 @@ namespace Server
 				break;
 			}
 			temp.Trim("\b");
-			type = Convert.ToInt32(temp);
+			_type = Convert.ToInt32(temp);
+			delete bytes;
 
-			Message message = new Message(text, user, type);
+			Message message = new Message(text, user, _type);
 			return message;
 		}
 
