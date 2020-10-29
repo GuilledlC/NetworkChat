@@ -1,0 +1,32 @@
+namespace Server
+{
+	class FOO
+	{
+		struct Message
+		{
+			public string message;
+			public int type;
+			public Socket user;
+
+			public Message(string theMessage, int theType, Socket theUser)
+			{
+				message = theMessage;
+				type = theType;
+				user = theUser;
+			}
+		}
+
+		public static void ExecuteServer
+		{
+			Set everything up
+
+			Create a list of sockets which will be the max. ammount of clients
+
+			try
+			{
+				
+			}
+			catch(every error){ Show it; }
+		}
+	}
+}
