@@ -25,7 +25,7 @@ namespace Server
 	// 1: Joined the server
 	// 0: Left the server <- default message if none is specified, user is kicked lol
 	// 2: Any message
-	struct Message
+	class Message
 	{
 		public string text;
 		private int type;
@@ -34,11 +34,11 @@ namespace Server
 		public Message(string theMessage, int theType, Socket theUser)
 		{
 			message = theMessage;
-			Type = theType;
+			Msgtype = theType;
 			user = theUser;
 		}
 
-		public int Type
+		public int Msgtype
 		{
 			get { return type; }
 			set{
@@ -56,9 +56,9 @@ namespace Server
 		{
 			//Set everything up;
 			IPHostEntry iPHost = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddr = iPHost.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
-            Socket listener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+			IPAddress ipAddr = iPHost.AddressList[0];
+			IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
+			Socket listener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
 			//Create a list of sockets
 			List<Socket> clients = new List<Socket>();
@@ -67,7 +67,7 @@ namespace Server
 			{
 				//Wait for a connection
 				listener.Bind(localEndPoint);
-                listener.Listen(10);
+				listener.Listen(10);
 				while(true)
 				{
 					Socket clientSocket = listener.Accept();
@@ -79,9 +79,9 @@ namespace Server
 				}
 			}
 			catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
+			{
+				Console.WriteLine(e.ToString());
+			}
 		}
 
 		public static void Connection(Socket client)
@@ -89,13 +89,19 @@ namespace Server
 			while(true)
 			{
 				Message current = Listen(client);
-				if(message.Type == 0)
+				if(message.Msgtype == 0)
 					Disconnect(client);
-				else if(message.Type == 1)
+				else if(message.Msgtype == 1)
 					Send(message.user" has just joined!", Server); //NEED TO MAKE THE SERVER A USER
-				else if(message.Type == 2)
+				else if(message.Msgtype == 2)
 					Send(message.text, message.user);
 			}
+		}
+
+		public static void Disconnect(Socket client)
+		{
+			client.Shutdown(SocketShutdown.Both);
+			client.Close();
 		}
 
 		public static Message Listen(Socket client)
@@ -109,26 +115,26 @@ namespace Server
 			while(true) //Parsing the message
 			{
 				int numByte = client.Receive(bytes);
-                text += Encoding.ASCII.GetString(bytes, 0, numByte);
+				text += Encoding.ASCII.GetString(bytes, 0, numByte);
 
-                if (text.IndexOf("\b") > -1) //<EOF>
-                    break;
+				if (text.IndexOf("\b") > -1) //<EOF>
+					break;
 			}
 			while(true) //Parsing the user
 			{
 				int numByte = client.Receive(bytes);
-                user += Encoding.ASCII.GetString(bytes, 0, numByte);
+				user += Encoding.ASCII.GetString(bytes, 0, numByte);
 
-                if (user.IndexOf("\b") > -1) //<EOF>
-                    break;
+				if (user.IndexOf("\b") > -1) //<EOF>
+					break;
 			}
 			while(true) //Parsing the type
 			{
 				int numByte = client.Receive(bytes);
-                temp += Encoding.ASCII.GetString(bytes, 0, numByte);
+				temp += Encoding.ASCII.GetString(bytes, 0, numByte);
 
-                if (temp.IndexOf("\b") > -1) //<EOF>
-                    break;
+				if (temp.IndexOf("\b") > -1) //<EOF>
+				break;
 			}
 			temp.Trim("\b");
 			type = Convert.ToInt32(temp);
