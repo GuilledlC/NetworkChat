@@ -1,3 +1,20 @@
+/*SERVER:
+-1 Initialize Winsock
+-2 Create a socket
+-3 Bind the socket
+-4 Listen on the socket for a client
+-5 Accept a connection from a client
+-6 Send and receive data
+-7 Disconnect
+
+CLIENT:
+-1 Initialize Winsock
+-2 Create a socket
+-3 Connect to the server
+-4 Send and receive data
+-5 Disconnect*/
+
+
 namespace Server
 {
 	class FOO
@@ -16,7 +33,7 @@ namespace Server
 			}
 		}
 
-		public static void ExecuteServer
+		public static void ExecuteServer()
 		{
 			Set everything up
 
@@ -24,9 +41,9 @@ namespace Server
 
 			try
 			{
-				
+
 			}
-			catch(every error){ Show it; }
+			catch (every error){Show it;}
 		}
 	}
 }
