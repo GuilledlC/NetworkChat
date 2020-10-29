@@ -36,13 +36,13 @@ namespace FinalServer
 	{
 		public string text;
 		private MessageTypes _type;
-		public Socket user;
+		public Socket sock;
 
-		public Message(string theMessage, MessageTypes theType, Socket theUser)
+		public Message(string theMessage, MessageTypes theType, Socket theSock)
 		{
 			text = theMessage;
 			MsgType = theType;
-			user = theUser;
+			sock = theSock;
 		}
 
 		public MessageTypes MsgType
@@ -50,7 +50,7 @@ namespace FinalServer
 			get { return _type; }
 			set
 			{
-				if (value == MessageTypes::Disconnected || value == MessageTypes::Joined || value == MessageTypes::Any)
+				if (value == MessageTypes.Disconnected || value == MessageTypes.Joined || value == MessageTypes.Any)
 					_type = value;
 				else
 					_type = 0;
@@ -60,6 +60,9 @@ namespace FinalServer
 
 	class FOO
 	{
+		//Create a list of sockets
+		static List<Socket> socks = new List<Socket>();
+
 		public static void ExecuteServer()
 		{
 			//Set everything up;
@@ -67,9 +70,6 @@ namespace FinalServer
 			IPAddress ipAddr = iPHost.AddressList[0];
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
 			Socket listener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-			//Create a list of sockets
-			List<Socket> clients = new List<Socket>();
 
 			try
 			{
@@ -90,46 +90,46 @@ namespace FinalServer
 			}
 		}
 
-		public static void Connection(Socket client)
+		public static void Connection(Socket sock)
 		{
 			while (true)
 			{
-				Message current = Listen(client);
-				if (current.MsgType == MessageTypes::Disconnected)
-					Disconnect(client);
-				else if (current.MsgType == MessageTypes::Joined)
-					Send(current.user + " has just joined!", "Server");
-				else if (current.MsgType == MessageTypes::Any)
-					Send(current.text, current.user);
+				Message current = Listen(sock);
+				if (current.MsgType == MessageTypes.Disconnected)
+					Disconnect(sock);
+				else if (current.MsgType == MessageTypes.Joined)
+					Send(current.sock.ToString() + " has just joined!", "Server");
+				else if (current.MsgType == MessageTypes.Any)
+					Send(current.text, current.sock.ToString());
 			}
 		}
 
-		public static void Disconnect(Socket client)
+		public static void Disconnect(Socket sock)
 		{
-			client.Shutdown(SocketShutdown.Both);
-			client.Close();
+			sock.Shutdown(SocketShutdown.Both);
+			sock.Close();
 		}
 
 		public static void Send(string msg, string user)
 		{
-			foreach (Socket client in ExecuteServer().clients)
+			foreach (Socket sock in socks)
 			{
 				byte[] messageSent = Encoding.ASCII.GetBytes(user + ": " + msg);
-				client.Send(messageSent);
+				sock.Send(messageSent);
 			}
 		}
 
-		public static Message Listen(Socket client)
+		public static Message Listen(Socket sock)
 		{
 			byte[] bytes = new byte[2048];
 			string text = null;
 			string user = null;
 			string temp = null;
-			int _type;
+			int type;
 
 			while (true) //Parsing the message
 			{
-				int numByte = client.Receive(bytes);
+				int numByte = sock.Receive(bytes);
 				text += Encoding.ASCII.GetString(bytes, 0, numByte);
 
 				if (text.IndexOf("\b") > -1) //<EOF>
@@ -137,7 +137,7 @@ namespace FinalServer
 			}
 			while (true) //Parsing the user
 			{
-				int numByte = client.Receive(bytes);
+				int numByte = sock.Receive(bytes);
 				user += Encoding.ASCII.GetString(bytes, 0, numByte);
 
 				if (user.IndexOf("\b") > -1) //<EOF>
@@ -145,16 +145,16 @@ namespace FinalServer
 			}
 			while (true) //Parsing the type
 			{
-				int numByte = client.Receive(bytes);
+				int numByte = sock.Receive(bytes);
 				temp += Encoding.ASCII.GetString(bytes, 0, numByte);
 
 				if (temp.IndexOf("\b") > -1) //<EOF>
 					break;
 			}
 			temp.Trim('\b');
-			_type = Convert.ToInt32(temp);
+			type = Convert.ToInt32(temp);
 
-			Message message = new Message(text, _type, user);
+			Message message = new Message(text, (MessageTypes)type, user);
 			return message;
 		}
 
