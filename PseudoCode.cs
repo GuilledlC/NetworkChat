@@ -19,13 +19,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Server
+namespace FinalServer
 {
 	enum MessageTypes
 	{
-		Disconnected = 0;
-		Joined = 1;
-		SentMessage = 2;
+		Disconnected = 0,
+		Joined = 1,
+		Any = 2,
 	}
 
 	//Types of message:
@@ -35,21 +35,22 @@ namespace Server
 	class Message
 	{
 		public string text;
-		private int _type;
+		private MessageTypes _type;
 		public Socket user;
 
-		public Message(string theMessage, int theType, Socket theUser)
+		public Message(string theMessage, MessageTypes theType, Socket theUser)
 		{
-			message = theMessage;
+			text = theMessage;
 			MsgType = theType;
 			user = theUser;
 		}
 
-		public int MsgType
+		public MessageTypes MsgType
 		{
 			get { return _type; }
-			set{
-				if(value == 0 || value == 1 || value == 2)
+			set
+			{
+				if (value == MessageTypes::Disconnected || value == MessageTypes::Joined || value == MessageTypes::Any)
 					_type = value;
 				else
 					_type = 0;
@@ -75,7 +76,7 @@ namespace Server
 				//Wait for a connection
 				listener.Bind(localEndPoint);
 				listener.Listen(10);
-				while(true)
+				while (true)
 				{
 					Socket clientSocket = listener.Accept();
 
@@ -91,16 +92,15 @@ namespace Server
 
 		public static void Connection(Socket client)
 		{
-			while(true)
+			while (true)
 			{
 				Message current = Listen(client);
-				if(message.Msgtype == Disconnected)
+				if (current.MsgType == MessageTypes::Disconnected)
 					Disconnect(client);
-				else if(message.MsgType == Joined)
-					Send(message.user" has just joined!", "Server");
-				else if(message.Msgtype == SentMessage)
-					Send(message.text, message.user);
-				delete current;
+				else if (current.MsgType == MessageTypes::Joined)
+					Send(current.user + " has just joined!", "Server");
+				else if (current.MsgType == MessageTypes::Any)
+					Send(current.text, current.user);
 			}
 		}
 
@@ -112,7 +112,7 @@ namespace Server
 
 		public static void Send(string msg, string user)
 		{
-			foreach(Socket client in ExecuteServer.clients)
+			foreach (Socket client in ExecuteServer().clients)
 			{
 				byte[] messageSent = Encoding.ASCII.GetBytes(user + ": " + msg);
 				client.Send(messageSent);
@@ -125,9 +125,9 @@ namespace Server
 			string text = null;
 			string user = null;
 			string temp = null;
-			int _type = null;
+			int _type;
 
-			while(true) //Parsing the message
+			while (true) //Parsing the message
 			{
 				int numByte = client.Receive(bytes);
 				text += Encoding.ASCII.GetString(bytes, 0, numByte);
@@ -135,7 +135,7 @@ namespace Server
 				if (text.IndexOf("\b") > -1) //<EOF>
 					break;
 			}
-			while(true) //Parsing the user
+			while (true) //Parsing the user
 			{
 				int numByte = client.Receive(bytes);
 				user += Encoding.ASCII.GetString(bytes, 0, numByte);
@@ -143,19 +143,18 @@ namespace Server
 				if (user.IndexOf("\b") > -1) //<EOF>
 					break;
 			}
-			while(true) //Parsing the type
+			while (true) //Parsing the type
 			{
 				int numByte = client.Receive(bytes);
 				temp += Encoding.ASCII.GetString(bytes, 0, numByte);
 
 				if (temp.IndexOf("\b") > -1) //<EOF>
-				break;
+					break;
 			}
-			temp.Trim("\b");
+			temp.Trim('\b');
 			_type = Convert.ToInt32(temp);
-			delete bytes;
 
-			Message message = new Message(text, user, _type);
+			Message message = new Message(text, _type, user);
 			return message;
 		}
 
