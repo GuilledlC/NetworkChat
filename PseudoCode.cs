@@ -27,7 +27,7 @@ namespace Server
 	// 2: Any message
 	struct Message
 	{
-		public string message;
+		public string text;
 		private int type;
 		public Socket user;
 
@@ -49,19 +49,25 @@ namespace Server
 			}
 		}
 	}
-	
+
 	class FOO
 	{
 		public static void ExecuteServer()
 		{
 			//Set everything up;
+			IPHostEntry iPHost = Dns.GetHostEntry(Dns.GetHostName());
+            IPAddress ipAddr = iPHost.AddressList[0];
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
+            Socket listener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-			//Create a list of sockets which will be the max. ammount of clients
+			//Create a list of sockets
 			List<Socket> clients = new List<Socket>();
 
 			try
 			{
 				//Wait for a connection
+				listener.Bind(localEndPoint);
+                listener.Listen(10);
 				while(true)
 				{
 					Socket clientSocket = listener.Accept();
@@ -72,18 +78,30 @@ namespace Server
 					ConnectionThread.Start();
 				}
 			}
-			catch (Exception error){Show error}
+			catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
 		}
 
 		public static void Connection(Socket client)
 		{
-			Message current = Listen(client);
+			while(true)
+			{
+				Message current = Listen(client);
+				if(message.Type == 0)
+					Disconnect(client);
+				else if(message.Type == 1)
+					Send(message.user" has just joined!", Server); //NEED TO MAKE THE SERVER A USER
+				else if(message.Type == 2)
+					Send(message.text, message.user);
+			}
 		}
 
 		public static Message Listen(Socket client)
 		{
 			byte[] bytes = new byte[2048];
-			string data = null;
+			string text = null;
 			string user = null;
 			string temp = null;
 			int type = null;
@@ -91,9 +109,9 @@ namespace Server
 			while(true) //Parsing the message
 			{
 				int numByte = client.Receive(bytes);
-                data += Encoding.ASCII.GetString(bytes, 0, numByte);
+                text += Encoding.ASCII.GetString(bytes, 0, numByte);
 
-                if (data.IndexOf("\b") > -1) //<EOF>
+                if (text.IndexOf("\b") > -1) //<EOF>
                     break;
 			}
 			while(true) //Parsing the user
@@ -107,12 +125,16 @@ namespace Server
 			while(true) //Parsing the type
 			{
 				int numByte = client.Receive(bytes);
-                data += Encoding.ASCII.GetString(bytes, 0, numByte); //FIX THIS LATER
+                temp += Encoding.ASCII.GetString(bytes, 0, numByte);
 
-                if (data.IndexOf("\b") > -1) //<EOF>
+                if (temp.IndexOf("\b") > -1) //<EOF>
                     break;
 			}
+			temp.Trim("\b");
+			type = Convert.ToInt32(temp);
 
+			Message message = new Message(text, user, type);
+			return message;
 		}
 
 		static void Main(string[] args)
