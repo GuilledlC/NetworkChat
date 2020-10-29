@@ -61,14 +61,63 @@ namespace Server
 
 			try
 			{
-
+				//Wait for a connection
+				while(true)
+				{
+					Socket clientSocket = listener.Accept();
+					//Everyhting that went here I am going to put inside the Connection() method
+					//and then create a new thread with that method for each client
+					//Is that what you meant?
+					Thread ConnectionThread = new Thread(() => Connection(clientSocket));
+					ConnectionThread.Start();
+				}
 			}
 			catch (Exception error){Show error}
 		}
 
-		static void Main(string[] args)
+		public static void Connection(Socket client)
 		{
+			Message current = Listen(client);
+		}
+
+		public static Message Listen(Socket client)
+		{
+			byte[] bytes = new byte[2048];
+			string data = null;
+			string user = null;
+			string temp = null;
+			int type = null;
+
+			while(true) //Parsing the message
+			{
+				int numByte = client.Receive(bytes);
+                data += Encoding.ASCII.GetString(bytes, 0, numByte);
+
+                if (data.IndexOf("\b") > -1) //<EOF>
+                    break;
+			}
+			while(true) //Parsing the user
+			{
+				int numByte = client.Receive(bytes);
+                user += Encoding.ASCII.GetString(bytes, 0, numByte);
+
+                if (user.IndexOf("\b") > -1) //<EOF>
+                    break;
+			}
+			while(true) //Parsing the type
+			{
+				int numByte = client.Receive(bytes);
+                data += Encoding.ASCII.GetString(bytes, 0, numByte); FIX THIS LATER
+
+                if (data.IndexOf("\b") > -1) //<EOF>
+                    break;
+			}
 
 		}
+
+		static void Main(string[] args)
+		{
+			ExecuteServer();
+		}
 	}
-}
+}		
