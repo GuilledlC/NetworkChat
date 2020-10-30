@@ -1,7 +1,6 @@
 //A bunch of pseudocode that I'm slowly turning into real code
 /*Copyright (c) 2020, Guillermo de la Cal All rights reserved. Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-
 	1 - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 	2 - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
 		in the documentation and/or other materials provided with the distribution. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS
@@ -36,12 +35,14 @@ namespace FinalServer
 	{
 		public string text;
 		private MessageTypes _type;
+        public string user;
 		public Socket sock;
 
-		public Message(string theMessage, MessageTypes theType, Socket theSock)
+		public Message(string theMessage, MessageTypes theType, string theUser, Socket theSock)
 		{
 			text = theMessage;
 			MsgType = theType;
+            user = theUser;
 			sock = theSock;
 		}
 
@@ -62,6 +63,7 @@ namespace FinalServer
 	{
 		//Create a list of sockets
 		static List<Socket> socks = new List<Socket>();
+        static List<string> users = new List<string>();
 
 		public static void ExecuteServer()
 		{
@@ -98,9 +100,9 @@ namespace FinalServer
 				if (current.MsgType == MessageTypes.Disconnected)
 					Disconnect(sock);
 				else if (current.MsgType == MessageTypes.Joined)
-					Send(current.sock.ToString() + " has just joined!", "Server");
+					Send(current.user.ToString() + " has just joined!", "Server");
 				else if (current.MsgType == MessageTypes.Any)
-					Send(current.text, current.sock.ToString());
+					Send(current.text, current.user.ToString());
 			}
 		}
 
@@ -123,7 +125,8 @@ namespace FinalServer
 		{
 			byte[] bytes = new byte[2048];
 			string text = null;
-			string user = null;
+            string user = null;
+			Socket user = null;
 			string temp = null;
 			int type;
 
@@ -154,7 +157,7 @@ namespace FinalServer
 			temp.Trim('\b');
 			type = Convert.ToInt32(temp);
 
-			Message message = new Message(text, (MessageTypes)type, user);
+			Message message = new Message(text, (MessageTypes)type, user, sock);
 			return message;
 		}
 
