@@ -1,4 +1,3 @@
-﻿//A bunch of pseudocode that I'm slowly turning into real code
 /*Copyright (c) 2020, Guillermo de la Cal All rights reserved. Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 	1 - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
@@ -20,56 +19,6 @@ using System.Threading;
 
 namespace FinalServer
 {
-	class Message
-	{
-		public string text;
-		private MessageTypes _type;
-		public string user;
-
-		public Message(string constructor)
-		{
-			int count = 0, theType;
-			string theMessage = null, theUser = null, typestr = null;
-			foreach (char c in constructor)
-			{
-				if (c == '\b')
-					count++;
-				else if (count == 0)
-					theMessage += c;
-				else if (count == 1)
-					theUser += c;
-				else if (count == 2)
-					typestr += c;
-			}
-
-			try
-			{
-				theType = Convert.ToInt32(typestr);
-			}
-			catch //If it's not an integer
-			{
-				theType = -1; //Convert to error
-			}
-			
-			text = theMessage;
-			user = theUser;
-			MsgType = (MessageTypes)theType;
-			Console.WriteLine(theUser + ": " + theMessage + "/" + MsgType);
-		}
-
-		public MessageTypes MsgType
-		{
-			get { return _type; }
-			set
-			{
-				if (value == MessageTypes.Disconnected || value == MessageTypes.Joined || value == MessageTypes.Any)
-					_type = value;
-				else
-					_type = (MessageTypes)(-1);
-			}
-		}
-	}
-
 	class FOO
 	{
 		//Create a list of sockets
