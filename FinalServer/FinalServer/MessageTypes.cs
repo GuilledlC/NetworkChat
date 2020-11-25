@@ -10,7 +10,9 @@ namespace FinalServer
 	}
 
 	//Types of message:
+	//-1: Error  <- default message if none is specified
 	// 1: Joined the server
-	// 0: Left the server <- default message if none is specified, user is kicked lol
+	// 0: Left the server
 	// 2: Any message
+	// 3: Name changed
 }
