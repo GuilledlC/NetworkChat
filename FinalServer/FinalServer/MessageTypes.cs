@@ -20,6 +20,7 @@ namespace FinalServer
 		Joined = 1,
 		Any = 2,
 		NameChange = 3,
+		Test = 4,
 	}
 
 	//Types of message:
@@ -28,4 +29,5 @@ namespace FinalServer
 	// 0: Left the server
 	// 2: Any message
 	// 3: Name changed
+	// 4: Placeholder
 }
