@@ -57,7 +57,8 @@ namespace FinalServer
 			get { return _type; }
 			set
 			{
-				if (value == MessageTypes.Disconnected || value == MessageTypes.Joined || value == MessageTypes.Any)
+				if (value == MessageTypes.Disconnected || value == MessageTypes.Joined || value == MessageTypes.Any
+				|| value == MessageTypes.NameChange || value == MessageTypes.Test)
 					_type = value;
 				else
 					_type = (MessageTypes)(-1);
